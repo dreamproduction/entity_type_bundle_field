@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * @file
+ * Defines a field for storing entity_type/bunlde pairs.
+ */
+
+/**
+ * Implements hook_field_info().
+ */
+function entity_type_bundle_field_field_info() {
+  return array(
+    'entity_type_bundle' => array(
+      'label' => t('Entity type and bundle'),
+      'description' => t('Stores a pair of entity type/bundle.'),
+      'settings' => array(),
+      'instance_settings' => array(),
+      'default_widget' => 'entity_type_bundle',
+      'default_formatter' => 'entity_type_bundle',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_presave().
+ */
+function entity_type_bundle_field_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  if ($field['type'] == 'entity_type_bundle') {
+    foreach ($items as $delta => $item) {
+      // If the widget used is entity_type_bundle, it will only set one property
+      // (entity_type_bundle), in the format "entity_type|bundle". We need to
+      // split it and set the correct properties for storing.
+      if (isset($item['entity_type_bundle'])) {
+        list($items[$delta]['entity_type'], $items[$delta]['bundle']) = explode('|', $item['entity_type_bundle']);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function entity_type_bundle_field_field_is_empty($item, $field) {
+  // The field is empty if the sored columns are empty, and the pseudocolumn
+  // used by the 'entity_type_bundle' widget is also empty, or contains the
+  // empty value.
+  if ((empty($item['entity_type']) && empty($item['bundle'])) &&
+      (empty($item['entity_type_bundle']) || $item['entity_type_bundle'] == '_none')) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function entity_type_bundle_field_field_formatter_info() {
+  return array(
+    'entity_type_bundle' => array(
+      'label' => t('Default'),
+      'field types' => array('entity_type_bundle'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function entity_type_bundle_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+
+  switch ($display['type']) {
+    case 'entity_type_bundle':
+      foreach ($items as $delta => $item) {
+        $element[$delta]['entity_type'] = array(
+          '#markup' => t('Entity type') . ': ' . $item['entity_type'],
+        );
+        $element[$delta]['bundle'] = array(
+          '#markup' => t('Bundle') . ': ' . $item['bundle'],
+        );
+      }
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function entity_type_bundle_field_field_widget_info() {
+    return array(
+    'entity_type_bundle' => array(
+      'label' => t('Entity type and bundle selector'),
+      'field types' => array('entity_type_bundle'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function entity_type_bundle_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  $required = $element['#required'];
+  $element += array(
+    '#type' => 'select',
+    '#options' => _entity_type_bundle_options_list($required),
+    '#default_value' => isset($items[$delta]) ? $items[$delta]['entity_type'] . '|' . $items[$delta]['bundle'] : '_none',
+  );
+  return array('entity_type_bundle' => $element);
+}
+
+
+function _entity_type_bundle_options_list($required) {
+  $entities_info = entity_get_info();
+  $options = array();
+
+  // If the field is not required, add an option for empty value.
+  if (!$required) {
+    $options['_none'] = t('- Select a value -');
+  }
+
+  // Create one option per entity_type/bundle pair, and group them by entity
+  // type.
+  foreach($entities_info as $entity_type => $entity_info) {
+    $options_subset = array();
+    foreach ($entity_info['bundles'] as $bundle => $bundle_info) {
+      $key = $entity_type . '|' . $bundle;
+      $options_subset[$key] = $bundle_info['label'];
+    }
+    $options[$entity_info['label']] = $options_subset;
+  }
+
+  return $options;
+}

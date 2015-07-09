@@ -1,0 +1,4 @@
+name = Entity type / bundle field
+description = Provides a field type for storing entity type / bundle pairs.
+package = Fields
+core = 7.x

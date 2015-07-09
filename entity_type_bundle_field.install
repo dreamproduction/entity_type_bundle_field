@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the entity_type_bundle module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function entity_type_bundle_field_field_schema($field) {
+  switch ($field['type']) {
+    case 'entity_type_bundle' :
+      $columns = array(
+        'entity_type' => array(
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => FALSE
+        ),
+        'bundle' => array(
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => FALSE
+        ),
+      );
+      break;
+  }
+  return array(
+    'columns' => $columns,
+  );
+}

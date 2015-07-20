@@ -17,6 +17,8 @@ function entity_type_bundle_field_field_info() {
       'instance_settings' => array(),
       'default_widget' => 'entity_type_bundle',
       'default_formatter' => 'entity_type_bundle',
+      'property_type' => 'entity_type_bundle',
+      'property_callbacks' => array('entity_type_bundle_property_info_callback'),
     ),
   );
 }
@@ -111,7 +113,12 @@ function entity_type_bundle_field_field_widget_form(&$form, &$form_state, $field
   return array('entity_type_bundle' => $element);
 }
 
-
+/**
+ * Generate the list of possible entity_types and bundles.
+ *
+ * @param boolean $required
+ * @return array
+ */
 function _entity_type_bundle_options_list($required) {
   $entities_info = entity_get_info();
   $options = array();
@@ -133,4 +140,54 @@ function _entity_type_bundle_options_list($required) {
   }
 
   return $options;
+}
+
+/**
+ * Callback to alter the property info of entity_type/bundle fields.
+ *
+ * @see entity_type_bundle_field_field_info().
+ */
+function entity_type_bundle_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
+  $name = $field['field_name'];
+  $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$name];
+
+  $property['type'] = ($field['cardinality'] != 1) ? 'list<entity_type_bundle>' : 'entity_type_bundle';
+  $property['getter callback'] = 'entity_metadata_field_verbatim_get';
+  $property['setter callback'] = 'entity_metadata_field_verbatim_set';
+  $property['auto creation'] = 'entity_type_bundle_field_data_auto_creation';
+  $property['property info'] = entity_type_bundle_field_data_property_info();
+
+  unset($property['query callback']);
+}
+
+/**
+ * Returns the default array structure for an entity_ytpe/bundle field for use
+ * when creating new data arrays through an entity metadata wrapper.
+ */
+function entity_type_bundle_field_data_auto_creation() {
+  return array('entity_type' => NULL, 'bundle' => NULL);
+}
+
+/**
+ * Defines info for the properties of the entity_ytpe/bundle field data
+ * structure.
+ */
+function entity_type_bundle_field_data_property_info($name = NULL) {
+  return array(
+    'entity_type' => array(
+      'label' => t('Entity type'),
+      'description' => !empty($name) ? t('Entity type referenced by field %name', array('%name' => $name)) : '',
+      'type' => 'text',
+      'getter callback' => 'entity_property_verbatim_get',
+      'setter callback' => 'entity_property_verbatim_set',
+    ),
+    'unit' => array(
+      'label' => t('Bundle'),
+      'description' => !empty($name) ? t('Bundle referenced by field %name', array('%name' => $name)) : '',
+      'type' => 'text',
+      'getter callback' => 'entity_property_verbatim_get',
+      'setter callback' => 'entity_property_verbatim_set',
+      'options list' => 'entity_type_bundle_unit_options',
+    ),
+  );
 }

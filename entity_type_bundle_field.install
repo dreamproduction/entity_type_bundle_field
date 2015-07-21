@@ -11,21 +11,21 @@
 function entity_type_bundle_field_field_schema($field) {
   switch ($field['type']) {
     case 'entity_type_bundle' :
-      $columns = array(
-        'entity_type' => array(
+      $columns = [
+        'entity_type' => [
           'type' => 'varchar',
           'length' => 32,
           'not null' => FALSE
-        ),
-        'bundle' => array(
+        ],
+        'bundle' => [
           'type' => 'varchar',
           'length' => 32,
           'not null' => FALSE
-        ),
-      );
+        ],
+      ];
       break;
   }
-  return array(
+  return [
     'columns' => $columns,
-  );
+  ];
 }

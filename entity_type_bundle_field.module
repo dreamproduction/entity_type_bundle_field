@@ -9,18 +9,18 @@
  * Implements hook_field_info().
  */
 function entity_type_bundle_field_field_info() {
-  return array(
-    'entity_type_bundle' => array(
+  return [
+    'entity_type_bundle' => [
       'label' => t('Entity type and bundle'),
       'description' => t('Stores a pair of entity type/bundle.'),
-      'settings' => array(),
-      'instance_settings' => array(),
+      'settings' => [],
+      'instance_settings' => [],
       'default_widget' => 'entity_type_bundle',
       'default_formatter' => 'entity_type_bundle',
       'property_type' => 'entity_type_bundle',
-      'property_callbacks' => array('entity_type_bundle_property_info_callback'),
-    ),
-  );
+      'property_callbacks' => ['entity_type_bundle_property_info_callback'],
+    ],
+  ];
 }
 
 /**
@@ -57,30 +57,26 @@ function entity_type_bundle_field_field_is_empty($item, $field) {
  * Implements hook_field_formatter_info().
  */
 function entity_type_bundle_field_field_formatter_info() {
-  return array(
-    'entity_type_bundle' => array(
+  return [
+    'entity_type_bundle' => [
       'label' => t('Default'),
-      'field types' => array('entity_type_bundle'),
-    ),
-  );
+      'field types' => ['entity_type_bundle'],
+    ],
+  ];
 }
 
 /**
  * Implements hook_field_formatter_view().
  */
 function entity_type_bundle_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-  $element = array();
+  $element = [];
   $settings = $display['settings'];
 
   switch ($display['type']) {
     case 'entity_type_bundle':
       foreach ($items as $delta => $item) {
-        $element[$delta]['entity_type'] = array(
-          '#markup' => t('Entity type') . ': ' . $item['entity_type'],
-        );
-        $element[$delta]['bundle'] = array(
-          '#markup' => t('Bundle') . ': ' . $item['bundle'],
-        );
+        $element[$delta]['entity_type'] = ['#markup' => t('Entity type') . ': ' . $item['entity_type']];
+        $element[$delta]['bundle'] = ['#markup' => t('Bundle') . ': ' . $item['bundle']];
       }
       break;
   }
@@ -92,12 +88,12 @@ function entity_type_bundle_field_field_formatter_view($entity_type, $entity, $f
  * Implements hook_field_widget_info().
  */
 function entity_type_bundle_field_field_widget_info() {
-    return array(
-    'entity_type_bundle' => array(
-      'label' => t('Entity type and bundle selector'),
-      'field types' => array('entity_type_bundle'),
-    ),
-  );
+    return [
+      'entity_type_bundle' => [
+        'label' => t('Entity type and bundle selector'),
+        'field types' => ['entity_type_bundle'],
+      ],
+    ];
 }
 
 /**
@@ -105,12 +101,12 @@ function entity_type_bundle_field_field_widget_info() {
  */
 function entity_type_bundle_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $required = $element['#required'];
-  $element += array(
+  $element += [
     '#type' => 'select',
     '#options' => _entity_type_bundle_options_list($required),
     '#default_value' => isset($items[$delta]) ? $items[$delta]['entity_type'] . '|' . $items[$delta]['bundle'] : '_none',
-  );
-  return array('entity_type_bundle' => $element);
+  ];
+  return ['entity_type_bundle' => $element];
 }
 
 /**
@@ -121,7 +117,7 @@ function entity_type_bundle_field_field_widget_form(&$form, &$form_state, $field
  */
 function _entity_type_bundle_options_list($required) {
   $entities_info = entity_get_info();
-  $options = array();
+  $options = [];
 
   // If the field is not required, add an option for empty value.
   if (!$required) {
@@ -131,7 +127,7 @@ function _entity_type_bundle_options_list($required) {
   // Create one option per entity_type/bundle pair, and group them by entity
   // type.
   foreach($entities_info as $entity_type => $entity_info) {
-    $options_subset = array();
+    $options_subset = [];
     foreach ($entity_info['bundles'] as $bundle => $bundle_info) {
       $key = $entity_type . '|' . $bundle;
       $options_subset[$key] = $bundle_info['label'];
@@ -165,7 +161,7 @@ function entity_type_bundle_property_info_callback(&$info, $entity_type, $field,
  * when creating new data arrays through an entity metadata wrapper.
  */
 function entity_type_bundle_field_data_auto_creation() {
-  return array('entity_type' => NULL, 'bundle' => NULL);
+  return ['entity_type' => NULL, 'bundle' => NULL];
 }
 
 /**
@@ -173,21 +169,21 @@ function entity_type_bundle_field_data_auto_creation() {
  * structure.
  */
 function entity_type_bundle_field_data_property_info($name = NULL) {
-  return array(
-    'entity_type' => array(
+  return [
+    'entity_type' => [
       'label' => t('Entity type'),
-      'description' => !empty($name) ? t('Entity type referenced by field %name', array('%name' => $name)) : '',
+      'description' => !empty($name) ? t('Entity type referenced by field %name', ['%name' => $name]) : '',
       'type' => 'text',
       'getter callback' => 'entity_property_verbatim_get',
       'setter callback' => 'entity_property_verbatim_set',
-    ),
-    'unit' => array(
+    ],
+    'bundle' => [
       'label' => t('Bundle'),
-      'description' => !empty($name) ? t('Bundle referenced by field %name', array('%name' => $name)) : '',
+      'description' => !empty($name) ? t('Bundle referenced by field %name', ['%name' => $name]) : '',
       'type' => 'text',
       'getter callback' => 'entity_property_verbatim_get',
       'setter callback' => 'entity_property_verbatim_set',
       'options list' => 'entity_type_bundle_unit_options',
-    ),
-  );
+    ],
+  ];
 }

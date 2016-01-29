@@ -101,11 +101,22 @@ function entity_type_bundle_field_field_widget_info() {
  */
 function entity_type_bundle_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $required = $element['#required'];
-  $element += [
-    '#type' => 'select',
-    '#options' => _entity_type_bundle_options_list($required),
-    '#default_value' => isset($items[$delta]) ? $items[$delta]['entity_type'] . '|' . $items[$delta]['bundle'] : '_none',
-  ];
+  // Filter the options to show only the bundles for commerce_product.
+  // Required for field_product_family.
+  if($element['#field_name'] == 'field_product_family' && in_array($element['#entity']->type,['advisers','selection_criteria'])) {
+    $element += [
+      '#type' => 'select',
+      '#options' => _entity_type_bundle_product_types_options_list($required),
+      '#default_value' => isset($items[$delta]) ? $items[$delta]['entity_type'] . '|' . $items[$delta]['bundle'] : '_none',
+    ];
+  }
+  else {
+    $element += [
+      '#type' => 'select',
+      '#options' => _entity_type_bundle_options_list($required),
+      '#default_value' => isset($items[$delta]) ? $items[$delta]['entity_type'] . '|' . $items[$delta]['bundle'] : '_none',
+    ];
+  }
   return ['entity_type_bundle' => $element];
 }
 
@@ -133,6 +144,34 @@ function _entity_type_bundle_options_list($required) {
       $options_subset[$key] = $bundle_info['label'];
     }
     $options[$entity_info['label']] = $options_subset;
+  }
+
+  return $options;
+}
+
+/**
+ * Generate the list of possible bundles for a specific entity_type.
+ *
+ * @param boolean $required
+ * @return array
+ */
+function _entity_type_bundle_product_types_options_list($required) {
+  $entities_info = entity_get_info();
+  $options = [];
+  $entity_type = 'commerce_product';
+
+  // If the field is not required, add an option for empty value.
+  if (!$required) {
+    $options['_none'] = t('- Select a value -');
+  }
+
+  // Create one option per entity_type/bundle pair.
+  if(isset($entities_info[$entity_type])){
+    $entity_info = $entities_info[$entity_type];
+    foreach ($entity_info['bundles'] as $bundle => $bundle_info) {
+      $key = $entity_type . '|' . $bundle;
+      $options[$key] = $bundle_info['label'];
+    }
   }
 
   return $options;

@@ -102,8 +102,8 @@ function entity_type_bundle_field_field_widget_info() {
 function entity_type_bundle_field_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   $required = $element['#required'];
   // Filter the options to show only the bundles for commerce_product.
-  // Required for field_product_family.
-  if($element['#field_name'] == 'field_product_family' && in_array($element['#entity']->type,['advisers','selection_criteria'])) {
+  // Required for field_product_family and for field_entity_bundle.
+  if(($element['#field_name'] == 'field_product_family' && in_array($element['#entity']->type,['advisers','selection_criteria'])) || ($element['#field_name'] == 'field_entity_bundle' && $element['#entity_type'] == 'taxonomy_term')){
     $element += [
       '#type' => 'select',
       '#options' => _entity_type_bundle_product_types_options_list($required),
